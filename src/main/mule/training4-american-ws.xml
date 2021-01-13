@@ -15,12 +15,12 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<db:config name="Derby_Database_Config" doc:name="Database Config" doc:id="d91246cd-af09-4e24-a064-d4f41db37b2f" >
 		<db:generic-connection url="jdbc:derby://localhost:1527/memory:training" driverClassName="org.apache.derby.jdbc.ClientDriver"/>
 	</db:config>
-	<flow name="training4-american-wsFlow" doc:id="8c55892e-cf99-4ae7-b070-84944d213d26" >
-		<http:listener doc:name="Listener" doc:id="24267ef6-b376-4f2b-afd1-3a6389f6bbdb" config-ref="HTTP_Listener_config" path="/flights"/>
-		<db:select doc:name="Select" doc:id="ab82c592-1632-4c50-8019-5eece984cd5b" config-ref="Derby_Database_Config">
+	<flow name="getFlights" doc:id="8c55892e-cf99-4ae7-b070-84944d213d26" >
+		<http:listener doc:name="GET /flights" doc:id="24267ef6-b376-4f2b-afd1-3a6389f6bbdb" config-ref="HTTP_Listener_config" path="/flights" allowedMethods="GET"/>
+		<db:select doc:name="flights" doc:id="ab82c592-1632-4c50-8019-5eece984cd5b" config-ref="Derby_Database_Config">
 			<db:sql ><![CDATA[SELECT * FROM american]]></db:sql>
 		</db:select>
-		<ee:transform doc:name="Transform Message" doc:id="c4c5b7f0-5196-4235-a9e1-318a48f863ca" >
+		<ee:transform doc:name="Output to JSON" doc:id="c4c5b7f0-5196-4235-a9e1-318a48f863ca" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -40,5 +40,39 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+	</flow>
+	<flow name="getFlightsByID" doc:id="9c18cc54-b57a-4878-99d8-f583dec2fca2" >
+		<http:listener doc:name="GET /flights/{ID}" doc:id="9cc1318e-31ec-4d87-91d5-96fb6003148d" config-ref="HTTP_Listener_config" path="/flights/{ID}" allowedMethods="GET" />
+		<db:select doc:name="flight" doc:id="c58f9f7e-b94b-4bb1-aeab-5b5490c69ecf" config-ref="Derby_Database_Config" >
+			<db:sql ><![CDATA[SELECT * FROM american
+	WHERE ID = :ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	'ID' : attributes.uriParams.ID
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Object to JSON" doc:id="bd873b45-4855-4671-9dce-7a44610ba25f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	ID: payload01.ID,
+	code: (payload01.CODE1 default "") ++ (payload01.CODE2 default ""),
+	price: payload01.PRICE default 0,
+	departureDate: payload01.TAKEOFFDATE as String default "",
+	origin: payload01.FROMAIRPORT default "",
+	destination: payload01.TOAIRPORT default "",
+	emptySeats: payload01.SEATSAVAILABLE default 0,
+	plane: {
+		"type": payload01.PLANETYPE default "",
+		totalSeats: payload01.TOTALSEATS default 0
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="postFlight" doc:id="2cc8d8be-c3aa-4d16-9bcf-9ef05a5fd4bf" >
+		<http:listener doc:name="POST /flights" doc:id="364e1816-0859-4fea-aba5-f4fabd969f0e" config-ref="HTTP_Listener_config" path="/flights" allowedMethods="POST"/>
+		<set-payload value='{"message": "Flight added (but not really)"}' doc:name="Set Payload" doc:id="ed095527-09c6-4373-bdde-01e14f547061" />
 	</flow>
 </mule>
