@@ -16,7 +16,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<db:generic-connection url="jdbc:derby://localhost:1527/memory:training" driverClassName="org.apache.derby.jdbc.ClientDriver"/>
 	</db:config>
 	<flow name="getFlights" doc:id="8c55892e-cf99-4ae7-b070-84944d213d26" >
-		<http:listener doc:name="GET /flights" doc:id="24267ef6-b376-4f2b-afd1-3a6389f6bbdb" config-ref="HTTP_Listener_config" path="/flights" allowedMethods="GET"/>
 		<db:select doc:name="flights" doc:id="ab82c592-1632-4c50-8019-5eece984cd5b" config-ref="Derby_Database_Config">
 			<db:sql ><![CDATA[SELECT * FROM american]]></db:sql>
 		</db:select>
@@ -42,7 +41,6 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 		</ee:transform>
 	</flow>
 	<flow name="getFlightsByID" doc:id="9c18cc54-b57a-4878-99d8-f583dec2fca2" >
-		<http:listener doc:name="GET /flights/{ID}" doc:id="9cc1318e-31ec-4d87-91d5-96fb6003148d" config-ref="HTTP_Listener_config" path="/flights/{ID}" allowedMethods="GET" />
 		<db:select doc:name="flight" doc:id="c58f9f7e-b94b-4bb1-aeab-5b5490c69ecf" config-ref="Derby_Database_Config" >
 			<db:sql ><![CDATA[SELECT * FROM american
 	WHERE ID = :ID]]></db:sql>
@@ -72,7 +70,6 @@ payload map ( payload01 , indexOfPayload01 ) -> {
 		</ee:transform>
 	</flow>
 	<flow name="postFlight" doc:id="2cc8d8be-c3aa-4d16-9bcf-9ef05a5fd4bf" >
-		<http:listener doc:name="POST /flights" doc:id="364e1816-0859-4fea-aba5-f4fabd969f0e" config-ref="HTTP_Listener_config" path="/flights" allowedMethods="POST"/>
 		<set-payload value='{"message": "Flight added (but not really)"}' doc:name="Set Payload" doc:id="ed095527-09c6-4373-bdde-01e14f547061" />
 	</flow>
 </mule>
